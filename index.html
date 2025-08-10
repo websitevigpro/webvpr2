@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Vigpro - SMAN 1 Prambanan</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --grad1: linear-gradient(135deg, #6a11cb, #2575fc);
+      --grad2: linear-gradient(135deg, #f7971e, #ffd200);
+      --text: #222;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #fefefe;
+      color: var(--text);
+      line-height: 1.6;
+      overflow-x: hidden;
+      font-size: 15px;
+    }
+    /* Animasi fade */
+    .fade-in { opacity: 0; transform: translateY(10px); animation: fadeUp 0.6s ease forwards; }
+    @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+    /* LOADER OVERLAY */
+    .loading-overlay {
+      position: fixed; inset: 0; background: #ffffff;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 2000; flex-direction: column; gap: 18px;
+      transition: opacity 0.25s ease;
+    }
+    .loading-overlay.hidden { pointer-events: none; opacity: 0; visibility: hidden; }
+    .loader {
+      width: 84px; height: 84px; border-radius: 50%;
+      border: 8px solid rgba(0,0,0,0.08);
+      border-top-color: rgba(0,0,0,0.55);
+      animation: spin 1s linear infinite;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { font-weight: 600; color: #333; letter-spacing: 0.2px; }
+    .loader-error { text-align: center; max-width: 320px; }
+    .btn-retry {
+      margin-top: 10px; padding: 8px 14px; border-radius: 8px; border: none;
+      background: var(--grad1); color: white; font-weight: 600; cursor: pointer;
+      transition: background 0.3s;
+    }
+    .btn-retry:hover { background: linear-gradient(135deg, #8146e0, #3a89ff); }
+
+    /* SIDEBAR */
+    .sidebar {
+      height: 100%; width: 250px; position: fixed; top: 0; left: -250px;
+      background: var(--grad1); color: white; padding-top: 60px;
+      transition: 0.4s ease; z-index: 999; box-shadow: 2px 0 15px rgba(0,0,0,0.15);
+    }
+    .sidebar a {
+      padding: 12px 18px; display: block; text-decoration: none; color: white;
+      transition: all 0.3s; font-weight: 500; font-size: 14px;
+    }
+    .sidebar a:hover { background-color: rgba(255,255,255,0.15); padding-left: 28px; }
+    .open-btn {
+      position: absolute; top: 15px; left: 15px; font-size: 24px;
+      background: none; border: none; color: white; cursor: pointer; z-index: 1000;
+    }
+    .overlay {
+      height: 100%; width: 0; position: fixed; top: 0; left: 0;
+      background-color: rgba(0,0,0,0.3); z-index: 998; transition: 0.3s;
+    }
+
+    /* HEADER */
+    header {
+      background: var(--grad1);
+      color: white;
+      padding: 45px 20px 30px;
+      text-align: center;
+      position: relative;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+      animation: fadeUp 0.6s ease forwards, gradientMove 6s ease infinite;
+      background-size: 200% 200%;
+    }
+    @keyframes gradientMove {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    .logo {
+      width: 95px;
+      height: 95px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 3px solid white;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.2);
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+    h1 {
+      margin: 12px 0 6px;
+      font-size: 2em;
+      font-weight: 700;
+      text-shadow: 1px 2px 4px rgba(0,0,0,0.25);
+    }
+    p#slogan {
+      font-size: 1.05em;
+      opacity: 0.95;
+      font-style: italic;
+    }
+
+    /* RUNNING TEKS */
+    .running-text {
+      background: var(--grad2); color: #000; padding: 8px;
+      overflow: hidden; white-space: nowrap; font-weight: 600; font-size: 14px;
+    }
+    .running-text span {
+      display: inline-block; padding-left: 100%; animation: marquee 15s linear infinite;
+    }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+
+    /* SECTION */
+    section { padding: 35px 18px; max-width: 1000px; margin: auto; }
+    section h2 {
+      color: #444; font-size: 1.5em; margin-bottom: 12px; position: relative;
+    }
+    section h2::after {
+      content: ""; position: absolute; bottom: -5px; left: 0; width: 60px; height: 3px;
+      background: var(--grad1); border-radius: 3px;
+    }
+
+    /* SLIDER */
+    .slider-container {
+      position: relative; max-width: 1000px; margin: 25px auto; overflow: hidden;
+      border-radius: 12px; box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+    }
+    .slides-wrapper { display: flex; transition: transform 0.6s ease-in-out; width: 100%; }
+    .slides-wrapper img { width: 100%; border-radius: 12px; flex-shrink: 0; object-fit: cover; }
+    .prev-btn, .next-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background-color: rgba(255,255,255,0.7); color: #333;
+      border: none; padding: 8px; font-size: 20px; cursor: pointer;
+      z-index: 10; border-radius: 50%; transition: all 0.3s;
+    }
+    .prev-btn:hover, .next-btn:hover {
+      background-color: rgba(255,255,255,0.9);
+      transform: translateY(-50%) scale(1.1);
+    }
+    .prev-btn { left: 12px; } .next-btn { right: 12px; }
+
+    /* HOT NEWS */
+    #hotnews {
+      background: #fff; padding: 18px; border-radius: 12px;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.08);
+      max-width: 1000px; margin: 20px auto;
+    }
+    .news-item {
+      margin-bottom: 18px; padding: 12px; border-radius: 10px;
+      background-color: #fafafa; cursor: pointer;
+      transition: all 0.3s ease; border: 1px solid #eee;
+    }
+    .news-item:hover {
+      transform: translateY(-4px); box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+      background-color: #fff;
+    }
+    .news-item h3 { margin: 0 0 4px; color: #ff6b6b; font-size: 1.05em; }
+    .news-item p { margin: 4px 0; font-size: 0.9em; }
+    .news-item .tanggal { font-size: 0.8em; color: #888; }
+
+    footer {
+      text-align: center; padding: 15px; background: var(--grad1);
+      color: white; margin-top: 30px; font-size: 0.9em;
+    }
+
+    /* POPUP INFO */
+    .popup-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.45);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 3000; animation: fadeIn 0.25s ease;
+    }
+    .popup-box {
+      background: #fff; border-radius: 12px; max-width: 520px; width: 92%;
+      padding: 20px 18px 16px; box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+      position: relative; animation: scaleIn 0.22s ease;
+    }
+    .popup-close {
+      position: absolute; top: 10px; right: 12px;
+      font-size: 24px; font-weight: bold; color: #666;
+      cursor: pointer; transition: color 0.18s;
+    }
+    .popup-close:hover { color: #000; }
+    .popup-title {
+      font-size: 1.15em; font-weight: 700; margin-bottom: 8px; color: #222;
+    }
+    .popup-content {
+      font-size: 0.98em; color: #444; line-height: 1.5;
+      max-height: 54vh; overflow-y: auto;
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes scaleIn { from { transform: scale(0.96); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    /* Responsive tweaks */
+    @media (max-width: 640px) {
+      header { padding: 30px 14px 22px; }
+      h1 { font-size: 1.5rem; }
+      .logo { width: 76px; height: 76px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- LOADING OVERLAY -->
+  <div id="loadingOverlay" class="loading-overlay" role="status" aria-live="polite" aria-busy="true">
+    <div class="loader" aria-hidden="true"></div>
+    <div class="loading-text">Memuat data…</div>
+    <div id="loaderError" class="loader-error" style="display:none;">
+      <div style="font-weight:700; color:#b00020;">Gagal memuat data</div>
+      <div style="margin-top:6px; color:#555; font-size:0.95em;">Periksa koneksi Anda atau coba lagi.</div>
+      <button id="retryBtn" class="btn-retry">Muat ulang</button>
+    </div>
+  </div>
+
+  <!-- POPUP INFO (default hidden) -->
+  <div id="popupInfo" class="popup-overlay" style="display:none;" aria-modal="true" role="dialog">
+    <div class="popup-box" role="document">
+      <button class="popup-close" id="popupCloseBtn" aria-label="Tutup popup">&times;</button>
+      <div class="popup-title" id="popup-title">Informasi Penting</div>
+      <div class="popup-content" id="popup-content">Memuat informasi...</div>
+    </div>
+  </div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar" aria-hidden="true">
+    <div id="sidebar-links">Memuat menu...</div>
+  </div>
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- HEADER -->
+  <header>
+    <button class="open-btn" onclick="openSidebar()" aria-label="Buka menu">☰</button>
+    <img class="logo" id="logo" src="Logo Vigpro.jpg" alt="Logo Vigpro">
+    <h1>Vigara Production</h1>
+    <p id="slogan">Slogan sedang dimuat...</p>
+  </header>
+
+  <!-- RUNNING TEKS -->
+  <div class="running-text"><span id="running-text">Memuat informasi...</span></div>
+
+  <!-- TENTANG -->
+  <section id="tentang">
+    <h2>Tentang Vigpro</h2>
+    <p id="deskripsi">Sedang memuat informasi tentang organisasi...</p>
+  </section>
+
+  <!-- SLIDER -->
+  <section id="slider">
+    <h2>📷 Galeri Foto</h2>
+    <div class="slider-container" aria-roledescription="slider">
+      <button class="prev-btn" aria-label="Gambar sebelumnya">&#10094;</button>
+      <div class="slides-wrapper" id="slides-wrapper"></div>
+      <button class="next-btn" aria-label="Gambar berikutnya">&#10095;</button>
+    </div>
+  </section>
+
+  <!-- HOT NEWS -->
+  <section id="hotnews">
+    <h2>🔥 Hot News</h2>
+    <div id="news-container"><p>Memuat berita...</p></div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    &copy; Vigara Production | SMAN 1 Prambanan
+  </footer>
+
+  <!-- SCRIPT -->
+  <script>
+    // URL Google Apps Script — ganti bila perlu
+    const url = 'https://script.google.com/macros/s/AKfycbzhR_b8X_ef2jJ9c2x4REtfSdt2WOqf3nDDgj3YSyHs4sEXHcflxq_djfmuSVbTIxAqaA/exec';
+
+    // Elemen
+    const overlayEl = document.getElementById('loadingOverlay');
+    const loaderErrorEl = document.getElementById('loaderError');
+    const retryBtn = document.getElementById('retryBtn');
+    const popupEl = document.getElementById('popupInfo');
+    const popupCloseBtn = document.getElementById('popupCloseBtn');
+
+    function showLoading() {
+      loaderErrorEl.style.display = 'none';
+      overlayEl.classList.remove('hidden');
+      overlayEl.setAttribute('aria-busy', 'true');
+    }
+    function hideLoading() {
+      overlayEl.classList.add('hidden');
+      overlayEl.setAttribute('aria-busy', 'false');
+    }
+    function showLoadingError() {
+      document.querySelector('.loading-text').textContent = 'Gagal memuat';
+      loaderErrorEl.style.display = 'block';
+    }
+
+    function showPopup(title, content) {
+      document.getElementById('popup-title').textContent = title || 'Informasi';
+      // allow basic HTML in content (they come from Google Sheet) but sanitize on server ideally
+      document.getElementById('popup-content').innerHTML = content || '';
+      popupEl.style.display = 'flex';
+      // focus for accessibility
+      popupCloseBtn.focus();
+    }
+    function closePopup() {
+      popupEl.style.display = 'none';
+    }
+
+    // close popup by close button or clicking outside the box (overlay area)
+    popupCloseBtn.addEventListener('click', closePopup);
+    popupEl.addEventListener('click', function(e) {
+      if (e.target === popupEl) closePopup();
+    });
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && popupEl.style.display === 'flex') closePopup();
+    });
+
+    // Sidebar open/close
+    function openSidebar() { document.getElementById("sidebar").style.left = "0"; document.getElementById("overlay").style.width = "100%"; document.getElementById("sidebar").setAttribute('aria-hidden', 'false'); }
+    function closeSidebar() { document.getElementById("sidebar").style.left = "-250px"; document.getElementById("overlay").style.width = "0"; document.getElementById("sidebar").setAttribute('aria-hidden', 'true'); }
+
+    // Retry button handler
+    retryBtn.onclick = () => {
+      document.querySelector('.loading-text').textContent = 'Memuat data…';
+      loadData();
+    };
+
+    async function loadData() {
+      showLoading();
+      try {
+        const res = await fetch(url, { cache: 'no-store' });
+        if (!res.ok) throw new Error('Response not OK: ' + res.status);
+        const data = await res.json();
+
+        // Landing data
+        document.getElementById('logo').src = (data.landing && data.landing.logo_url) ? data.landing.logo_url : 'Logo Vigpro.jpg';
+        document.getElementById('slogan').textContent = (data.landing && data.landing.slogan) ? data.landing.slogan : '';
+        document.getElementById('deskripsi').textContent = (data.landing && data.landing.deskripsi) ? data.landing.deskripsi : '';
+        // Running teks supports multiple entries; join if more than one
+        if (Array.isArray(data.runningTeks) && data.runningTeks.length) {
+          const teksAll = data.runningTeks.map(r => r.teks).filter(Boolean).join(' • ');
+          document.getElementById('running-text').textContent = teksAll || '';
+        } else {
+          document.getElementById('running-text').textContent = (data.runningTeks?.[0]?.teks) || '';
+        }
+
+        // Hot news
+        const newsContainer = document.getElementById('news-container');
+        newsContainer.innerHTML = '';
+        if (Array.isArray(data.hotnews) && data.hotnews.length) {
+          data.hotnews.forEach(item => {
+            const newsItem = document.createElement('div');
+            newsItem.className = 'news-item';
+            newsItem.innerHTML = `
+              <h3>${escapeHtml(item.judul || '')}</h3>
+              <p>${escapeHtml(item.isi || '').replace(/\n/g, '<br>')}</p>
+              <div class="tanggal">📅 ${escapeHtml(item.tanggal || '')}</div>
+            `;
+            newsItem.addEventListener('click', () => { if (item.link) window.open(item.link, '_blank'); });
+            newsContainer.appendChild(newsItem);
+          });
+        } else {
+          newsContainer.innerHTML = '<p>Tidak ada berita.</p>';
+        }
+
+        // Sidebar menu
+        const sidebarLinks = document.getElementById("sidebar-links");
+        sidebarLinks.innerHTML = '';
+        if (Array.isArray(data.sidebar) && data.sidebar.length) {
+          data.sidebar.forEach(item => {
+            const link = document.createElement('a');
+            link.href = item.target || '#';
+            link.textContent = item.label || 'Menu';
+            sidebarLinks.appendChild(link);
+          });
+        } else {
+          sidebarLinks.innerHTML = '<div style="padding:12px;color:rgba(255,255,255,0.9)">Tidak ada menu.</div>';
+        }
+
+        // Slider images
+        const slidesWrapper = document.getElementById('slides-wrapper');
+        slidesWrapper.innerHTML = '';
+        if (Array.isArray(data.slider) && data.slider.length) {
+          data.slider.forEach(item => {
+            const img = document.createElement('img');
+            img.src = item.url || '';
+            img.alt = item.alt || 'Galeri Vigpro';
+            slidesWrapper.appendChild(img);
+          });
+        } else {
+          slidesWrapper.innerHTML = '<div style="padding:40px;text-align:center;color:#666;width:100%;">Tidak ada gambar.</div>';
+        }
+
+        // Slider logic
+        let currentIndex = 0;
+        const updateSlideTransform = (index) => {
+          const childCount = slidesWrapper.children.length;
+          // if childCount==0 nothing to do
+          if (!childCount) return;
+          // set width of slides-wrapper as (childCount * 100)%, and each child will still be width:100% by CSS flex
+          slidesWrapper.style.transform = `translateX(-${index * 100}%)`;
+        };
+
+        const totalSlides = Math.max(1, slidesWrapper.children.length || 1);
+        function showSlide(index) { currentIndex = index; updateSlideTransform(index); }
+        document.querySelector('.next-btn').onclick = () => { currentIndex = (currentIndex + 1) % totalSlides; showSlide(currentIndex); };
+        document.querySelector('.prev-btn').onclick = () => { currentIndex = (currentIndex - 1 + totalSlides) % totalSlides; showSlide(currentIndex); };
+        if (totalSlides > 1) {
+          setInterval(() => { currentIndex = (currentIndex + 1) % totalSlides; showSlide(currentIndex); }, 5000);
+        } else {
+          // ensure transform reset if only one slide
+          showSlide(0);
+        }
+
+        // === POPUP DATA ===
+        // expecting data.popup = { judul: "...", isi: "..." }
+        if (data.popup && (data.popup.judul || data.popup.isi)) {
+          showPopup(data.popup.judul, data.popup.isi);
+        }
+
+        hideLoading();
+      } catch (err) {
+        console.error('Gagal memuat data:', err);
+        showLoadingError();
+        overlayEl.classList.remove('hidden');
+        // retryBtn onclick already set
+      }
+    }
+
+    // simple escape to avoid raw injection from sheet (basic)
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { showLoading(); loadData(); });
+  </script>
+</body>
+</html>
